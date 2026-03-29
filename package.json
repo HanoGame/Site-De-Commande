@@ -1,0 +1,12 @@
+{
+  "name": "roulotte-menu",
+  "version": "1.0.0",
+  "description": "Site de prise de commande pour la roulotte (menu & comptage ingr�dients)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

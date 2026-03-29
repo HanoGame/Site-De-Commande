@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Roulotte Tango — Personnel</title>
+  <style>
+    body{font-family:Inter, Arial, Helvetica, sans-serif;background:#f7f7f9;margin:0;padding:28px;display:flex;justify-content:center}
+    .wrap{max-width:980px;width:100%;background:#fff;padding:18px;border-radius:10px;box-shadow:0 8px 30px rgba(16,24,40,0.06)}
+    h1{margin-top:0}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    td,th{border:1px solid #eee;padding:10px;text-align:left}
+    .muted{color:#666;font-size:0.95rem}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+  <h1>Accès Personnel — Commandes & Totaux</h1>
+  <p class="muted">Accès restreint : communiquez cette URL uniquement au personnel. Aucune authentification n'est requise.</p>
+
+  <!-- tab navigation -->
+  <div class="tabs">
+    <button class="tab-button active" data-tab="orders">Commandes</button>
+    <button class="tab-button" data-tab="totals">Cumulé</button>
+  </div>
+
+  <!-- orders tab content -->
+  <div id="tab-orders" class="tab-content">
+    <h2>Liste des plats par statut</h2>
+    <div class="columns">
+      <div class="column" id="col-todo">
+        <h3>À faire</h3>
+        <ul></ul>
+      </div>
+      <div class="column" id="col-doing">
+        <h3>En cours</h3>
+        <ul></ul>
+      </div>
+      <div class="column" id="col-done">
+        <h3>Fait</h3>
+        <ul></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- totals tab content -->
+  <div id="tab-totals" class="tab-content" style="display:none;">
+    <h2>Totaux par plat</h2>
+    <div id="dishes"></div>
+  </div>
+  </div>
+
+  <script>
+    const SECRET = 'roulotte-personnel-2026';
+    const DISH_INFO = {
+      crevettes:{label:'Crevettes rôties + tagliatelles',price:9},
+      rouget:{label:'Filet de rouget + haricots verts',price:9},
+      saumon:{label:'Pavé de saumon + quinoa & légumes',price:9},
+      viande_grille:{label:'Viande grillée',price:11},
+      chipolatas:{label:'Chipolatas',price:11},
+      merguez:{label:'Merguez',price:11},
+      poulet:{label:'Poulet',price:11},
+      ribs:{label:'Ribs de porc texan',price:11},
+      snacking:{label:'Snacking (Tacos, Paninis, Sandwichs, Saladerie)',price:0}
+    };
+
+    function switchTab(name){
+      document.querySelectorAll('.tab-button').forEach(btn=>{
+        btn.classList.toggle('active', btn.dataset.tab===name);
+      });
+      document.querySelectorAll('.tab-content').forEach(div=>{
+        div.style.display = div.id === 'tab-'+name ? '' : 'none';
+      });
+    }
+
+    document.querySelectorAll('.tab-button').forEach(btn=>{
+      btn.addEventListener('click',() => switchTab(btn.dataset.tab));
+    });
+
+    // status stored in localStorage
+    function loadStatus(){
+      try{ return JSON.parse(localStorage.getItem('orderStatus')||'{}'); }catch(e){return{}};
+    }
+    function saveStatus(st){ localStorage.setItem('orderStatus', JSON.stringify(st)); }
+
+    function renderOrders(orders){
+      // build items grouped by customer
+      const grouped = {};
+      orders.forEach(o=>{
+        o.items.forEach((it,idx)=>{
+          const key = `${o.id}_${idx}`;
+          if(!grouped[o.name]) grouped[o.name]=[];
+          grouped[o.name].push({key,name:o.name,id:it.id,qty:it.qty});
+        });
+      });
+      const status = loadStatus();
+      function renderColumn(id,filter){
+        const container = document.getElementById(id);
+        let html = '';
+        for(const [name,items] of Object.entries(grouped)){
+          // filter items belonging to this column
+          const list = items.filter(filter);
+          if(!list.length) continue;
+          html += `<div class="person-block"><strong>${name}</strong><ul>`;
+          list.forEach(it=>{
+            const info = DISH_INFO[it.id] || {label:it.id};
+            const label = `${it.qty} × ${info.label}`;
+            const st = status[it.key] || 'todo';
+            html += `<li data-key="${it.key}">${label} <select class="status-select"><option value="todo" ${st==='todo'?'selected':''}>À faire</option><option value="doing" ${st==='doing'?'selected':''}>En cours</option><option value="done" ${st==='done'?'selected':''}>Fait</option></select></li>`;
+          });
+          html += '</ul></div>';
+        }
+        if(!html) html = '<p>Aucune commande enregistrée.</p>';
+        container.innerHTML = html;
+      }
+      renderColumn('col-todo',it=>status[it.key]==='todo' || !status[it.key]);
+      renderColumn('col-doing',it=>status[it.key]==='doing');
+      renderColumn('col-done',it=>status[it.key]==='done');
+
+      document.querySelectorAll('.status-select').forEach(sel=>{
+        sel.addEventListener('change', e=>{
+          const li = e.target.closest('li');
+          const key = li.dataset.key;
+          const st2 = loadStatus();
+          st2[key] = e.target.value;
+          saveStatus(st2);
+          renderOrders(orders);
+        });
+      });
+    }
+
+    // remove updateFinishedList function since not used
+
+    async function loadTotals(){
+      try{
+        const res = await fetch('/api/totals/'+SECRET);
+        const j = await res.json();
+        const d = j.dishTotals || {};
+        const dishEl = document.getElementById('dishes');
+        dishEl.innerHTML = Object.keys(d).length?('<table><tr><th>Plat</th><th>Quantité</th></tr>'+Object.entries(d).map(([k,v])=>`<tr><td>${k}</td><td>${v}</td></tr>`).join('')+'</table>'):'<p>Aucune commande enregistrée.</p>';
+      }catch(err){
+        document.body.insertAdjacentHTML('beforeend','<p>Erreur: '+err.message+'</p>');
+      }
+    }
+
+    async function loadOrders(){
+      try{
+        const res = await fetch('/api/orders/'+SECRET);
+        const j = await res.json();
+        renderOrders(j.orders||[]);
+      }catch(err){
+        document.getElementById('orders').innerHTML = '<p>Erreur: '+err.message+'</p>';
+      }
+    }
+
+    // initial load
+    loadTotals();
+    loadOrders();
+  </script>
+  <style>
+    .tabs{display:flex;gap:6px;margin:12px 0}
+    .tab-button{padding:8px 14px;border:none;border-radius:6px;background:#eee;cursor:pointer}
+    .tab-button.active{background:#d65a2a;color:#fff}
+    .tab-content{margin-top:12px}
+    .columns{display:flex;gap:12px;flex-wrap:wrap}
+    .column{flex:1;min-width:200px;background:#fafafa;padding:8px;border:1px solid #eee;border-radius:8px}
+    .column h3{margin-top:0}
+    .column ul{list-style:none;padding-left:0}
+    .column li{margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+    .status-select{margin-left:8px}
+    .person-block{border:1px solid #ccc;padding:6px 10px;margin-bottom:8px;border-radius:6px;background:#fff}
+    .person-block strong{display:block;margin-bottom:4px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    td,th{border:1px solid #eee;padding:8px;text-align:left}
+  </style></body>
+</html>

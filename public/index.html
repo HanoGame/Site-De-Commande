@@ -1,0 +1,576 @@
+﻿  <!doctype html>
+  <html lang="fr">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Roulotte Tango - Commande</title>
+
+  <style>
+  :root{
+    --accent:#ff6b35;
+    --accent-dark:#e55a24;
+    --accent-light:#ffa447;
+    --bg:#f8f9fa;
+    --card:#ffffff;
+    --text:#2c3e50;
+    --text-light:#7f8c8d;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body{
+    font-family: 'Segoe UI', '-apple-system', 'BlinkMacSystemFont', sans-serif;
+    background: linear-gradient(135deg, var(--bg) 0%, #f0f2f5 100%);
+    margin:0;
+    color:var(--text);
+    min-height:100vh;
+  }
+
+  .drive-header{
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color:white;
+    padding:40px 60px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    box-shadow:0 8px 32px rgba(255,107,53,0.25);
+    position:relative;
+    overflow:hidden;
+  }
+
+  .drive-header::before {
+    content:'';
+    position:absolute;
+    top:-50%;
+    right:-10%;
+    width:400px;
+    height:400px;
+    background:rgba(255,255,255,0.1);
+    border-radius:50%;
+  }
+
+  .drive-title{
+    font-size:2rem;
+    font-weight:800;
+    position:relative;
+    z-index:1;
+    letter-spacing:-0.5px;
+  }
+
+  .drive-search{
+    padding:12px 18px;
+    border:none;
+    border-radius:12px;
+    width:200px;
+    background:rgba(255,255,255,0.95);
+    font-size:0.95rem;
+    position:relative;
+    z-index:1;
+    transition:0.3s ease;
+  }
+
+  .drive-search:focus {
+    outline:none;
+    box-shadow:0 0 0 3px rgba(255,255,255,0.3);
+  }
+
+  .container{
+    width:100%;
+    padding:50px 60px;
+    box-sizing:border-box;
+    max-width:1400px;
+    margin:0 auto;
+  }
+
+  .name-section {
+    background:white;
+    padding:20px 25px;
+    border-radius:16px;
+    margin-bottom:30px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.06);
+  }
+
+  .name-section label {
+    font-weight:700;
+    font-size:1rem;
+    display:block;
+    margin-bottom:12px;
+    color:var(--text);
+  }
+
+  .name-section input[type=text] {
+    padding:12px 16px;
+    border-radius:10px;
+    border:2px solid #e0e0e0;
+    width:100%;
+    max-width:300px;
+    font-size:1rem;
+    transition:0.3s ease;
+  }
+
+  .name-section input[type=text]:focus {
+    outline:none;
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px rgba(255,107,53,0.1);
+  }
+
+  .main-layout{
+    display:flex;
+    gap:40px;
+    align-items:flex-start;
+  }
+
+  .left{
+    flex:3;
+  }
+
+  .right{
+    flex:1;
+    position:sticky;
+    top:30px;
+  }
+
+  form{
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  .dishes-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+    gap:25px;
+  }
+
+  .dish-card{
+    background:var(--card);
+    border-radius:20px;
+    padding:24px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.08);
+    transition:all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+    border:2px solid transparent;
+  }
+
+  .dish-card:hover{
+    transform:translateY(-8px);
+    box-shadow:0 16px 40px rgba(255,107,53,0.2);
+    border-color:var(--accent-light);
+  }
+
+  .dish-title{
+    font-size:1.2rem;
+    font-weight:800;
+    text-align:center;
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+
+  .dish-title small{
+    font-weight:700;
+    color:var(--accent);
+    display:block;
+    margin-top:6px;
+  }
+
+  .dish-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+    padding:12px 14px;
+    border-radius:12px;
+    transition:0.2s ease;
+  }
+
+  .dish-item:hover {
+    background:linear-gradient(135deg, #f0f2f5 0%, #e8eaed 100%);
+  }
+
+  .dish-item span {
+    font-size:0.95rem;
+    color:var(--text);
+    font-weight:500;
+  }
+
+  .qty-controls{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    background:white;
+    padding:4px 8px;
+    border-radius:8px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.05);
+  }
+
+  .qty-btn{
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    border:none;
+    color:white;
+    width:32px;
+    height:32px;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:all 0.2s ease;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .qty-btn:hover{
+    transform:scale(1.05);
+    box-shadow:0 4px 12px rgba(255,107,53,0.3);
+  }
+
+  .qty-btn:active{
+    transform:scale(0.95);
+  }
+
+  input[type=number]{
+    width:45px;
+    text-align:center;
+    border:none;
+    background:transparent;
+    font-weight:700;
+    font-size:1rem;
+    color:var(--text);
+  }
+
+  .order-summary{
+    background:linear-gradient(135deg, white 0%, #f9fafb 100%);
+    padding:28px;
+    border-radius:20px;
+    box-shadow:0 12px 32px rgba(255,107,53,0.15);
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+    border-left:5px solid var(--accent);
+  }
+
+  .order-summary h3{
+    margin:0;
+    font-size:1.3rem;
+    color:var(--text);
+  }
+
+  .summary-item{
+    display:flex;
+    justify-content:space-between;
+    font-size:0.95rem;
+    padding:8px 0;
+    border-bottom:1px solid #f0f0f0;
+  }
+
+  .summary-item:last-child {
+    border-bottom:none;
+  }
+
+  .summary-item span:first-child {
+    color:var(--text-light);
+  }
+
+  .summary-item span:last-child {
+    font-weight:700;
+    color:var(--accent);
+  }
+
+  .total{
+    font-weight:800;
+    font-size:1.3rem;
+    border-top:2px solid var(--accent-light);
+    padding-top:16px;
+    color:var(--text);
+  }
+
+  .total span {
+    color:var(--accent);
+  }
+
+  .submit{
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color:white;
+    border:none;
+    padding:14px;
+    border-radius:12px;
+    font-weight:800;
+    cursor:pointer;
+    width:100%;
+    font-size:1rem;
+    transition:all 0.3s ease;
+    box-shadow:0 4px 15px rgba(255,107,53,0.3);
+  }
+
+  .submit:hover {
+    transform:translateY(-2px);
+    box-shadow:0 8px 25px rgba(255,107,53,0.4);
+  }
+
+  .submit:active {
+    transform:translateY(0);
+  }
+
+  #msg{
+    font-weight:700;
+    color:var(--accent);
+    padding:16px;
+    background:rgba(255,107,53,0.1);
+    border-radius:12px;
+    border-left:4px solid var(--accent);
+    margin-top:10px;
+  }
+
+  .info-notice {
+    color:var(--text-light);
+    font-size:0.9rem;
+    margin-top:20px;
+    font-style:italic;
+  }
+
+  @media(max-width:900px){
+    .drive-header {
+      padding:30px 20px;
+      flex-direction:column;
+      gap:15px;
+      text-align:center;
+    }
+
+    .drive-title {
+      font-size:1.5rem;
+    }
+
+    .drive-search {
+      width:100%;
+    }
+
+    .container {
+      padding:30px 20px;
+    }
+
+    .main-layout{
+      flex-direction:column;
+      gap:25px;
+    }
+    
+    .right{
+      position:relative;
+      top:0;
+    }
+
+    .dishes-grid {
+      grid-template-columns:1fr;
+    }
+  }
+  </style>
+  </head>
+
+  <body>
+
+  <div class="drive-header">
+    <div class="drive-title">FoodTruck - Commande</div>
+    <a href="https://en-casdefaim.fr/" target="_blank" style="color:white;font-weight:500;position:relative;z-index:1;">en-casdefaim.fr</a>
+  </div>
+
+  <div class="container">
+
+  <form id="orderForm">
+
+  <div class="name-section">
+  <label>Prénom :</label>
+  <input type="text" id="name" required placeholder="Votre prénom">
+  </div>
+
+  <div class="main-layout">
+
+  <div class="left">
+
+  <div class="dishes-grid">
+
+  <div class="dish-card">
+  <div class="dish-title">Crevettes rôties (Jeudi)<br><small>9€</small></div>
+  <div class="dish-item">
+  <span>Crevettes + tagliatelles</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="crevettes" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  </div>
+
+  <div class="dish-card">
+  <div class="dish-title">Filet de rouget (Vendredi)<br><small>9€</small></div>
+  <div class="dish-item">
+  <span>Rouget + haricots</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="rouget" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  </div>
+
+  <div class="dish-card">
+  <div class="dish-title">Pavé de saumon (Samedi)<br><small>9€</small></div>
+  <div class="dish-item">
+  <span>Saumon + quinoa</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="saumon" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  </div>
+
+  <!-- barbecue card with multiple options -->
+  <div class="dish-card">
+  <div class="dish-title">Barbecue (Vendredi)<br><small>11€</small></div>
+  <div class="dish-item">
+  <span>Assiette - Frites, salade, pièce de boeuf</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="bbq_boeuf" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  <div class="dish-item">
+  <span>Assiette - Frites, salade, saucisse merguez</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="bbq_merguez" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  </div>
+
+  <!-- snacking card -->
+  <div class="dish-card">
+  <div class="dish-title">Snacking<br><small>5-8.5€</small></div>
+  <div class="dish-item">
+  <span>Tacos, Paninis, Sandwichs, Saladerie</span>
+  <div class="qty-controls">
+  <button type="button" class="qty-btn minus">-</button>
+  <input data-id="snacking" type="number" min="0" value="0">
+  <button type="button" class="qty-btn plus">+</button>
+  </div>
+  </div>
+  </div>
+
+  </div>
+
+  </div>
+
+  <div class="right">
+    <div class="order-summary">
+      <h3>Votre commande</h3>
+      <div id="summaryList"></div>
+      <div class="total">Total : <span id="totalPrice">0€</span></div>
+      <button class="submit" type="submit">Envoyer la commande</button>
+    </div>
+  </div>
+
+  </div>
+
+  </form>
+
+  </div>
+
+
+
+  <script src="/app.js"></script>
+
+  <script>
+  // Boutons + et -
+  document.querySelectorAll('.plus').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const input = btn.parentElement.querySelector('input');
+      input.value = parseInt(input.value) + 1;
+      input.dispatchEvent(new Event('input'));
+    });
+  });
+
+  document.querySelectorAll('.minus').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const input = btn.parentElement.querySelector('input');
+      if(parseInt(input.value) > 0){
+        input.value = parseInt(input.value) - 1;
+        input.dispatchEvent(new Event('input'));
+      }
+    });
+  });
+
+  // PRIX et libellés
+  const prices = {
+    crevettes:9,
+    rouget:9,
+    saumon:9,
+    bbq_boeuf:11,
+    bbq_merguez:11,
+    snacking:0
+  };
+  const labels = {
+    crevettes:'Crevettes rôties',
+    rouget:'Filet de rouget',
+    saumon:'Pavé de saumon',
+    bbq_boeuf:'Assiette - Frites, salade, pièce de boeuf',
+    bbq_merguez:'Assiette - Frites, salade, saucisse merguez',
+    snacking:'Snacking'
+  };
+
+  function updateSummary(){
+    const summaryList = document.getElementById('summaryList');
+    const totalPrice = document.getElementById('totalPrice');
+    summaryList.innerHTML = "";
+    let total = 0;
+
+    document.querySelectorAll('[data-id]').forEach(input=>{
+      const qty = parseInt(input.value);
+      const id = input.getAttribute('data-id');
+
+      if(qty > 0){
+        const price = prices[id] || 0;
+        const line = qty * price;
+        total += line;
+
+        const div = document.createElement('div');
+        div.className = "summary-item";
+        const name = labels[id] || id;
+        div.innerHTML = `<span>${name} <strong>x${qty}</strong></span><span>${line}€</span>`;
+        summaryList.appendChild(div);
+      }
+    });
+
+    totalPrice.textContent = total + "€";
+  }
+
+  document.querySelectorAll('[data-id]').forEach(input=>{
+    input.addEventListener('input', updateSummary);
+  });
+
+  updateSummary();
+
+  document.getElementById("orderForm").addEventListener("submit", function(e){
+  const confirmMsg = confirm(
+    "⚠️ Ceci n'est PAS un paiement en ligne.\n\n" +
+    "Vous envoyez seulement une précommande.\n" +
+    "Le paiement se fera sur place au FoodTruck.\n\n" +
+    "Continuer ?"
+  );
+
+  if(!confirmMsg){
+    e.preventDefault();
+  }
+});
+</script>
+
+  </body>
+  </html>
+  
