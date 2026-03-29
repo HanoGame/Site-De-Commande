@@ -317,6 +317,7 @@
   }
 
   #msg{
+    display:none;
     font-weight:700;
     color:var(--accent);
     padding:16px;
@@ -332,6 +333,48 @@
     margin-top:20px;
     font-style:italic;
   }
+
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.46);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:1000;
+    padding:24px;
+  }
+
+  .modal-card{
+    width:min(500px,100%);
+    background:white;
+    border-radius:16px;
+    padding:26px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.25);
+    text-align:left;
+    animation:modalIn 230ms ease;
+  }
+
+  .modal-card h3{
+    margin-top:0;
+    color:var(--accent);
+  }
+
+  .modal-card p{ margin-bottom:16px; color:#4a4a4a; }
+
+  .modal-actions{ display:flex; gap:10px; justify-content:flex-end; }
+
+  .modal-btn{
+    background:linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+    color:white;
+    border:none;
+    border-radius:10px;
+    padding:10px 16px;
+    cursor:pointer;
+    font-weight:700;
+  }
+
+  @keyframes modalIn{ from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
 
   @media(max-width:900px){
     .drive-header {
@@ -378,6 +421,18 @@
   </div>
 
   <div class="container">
+
+  <div id="preorderModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-card">
+      <h3 id="modalTitle">Précommande - paiement sur place</h3>
+      <p>Merci d’utiliser le système de précommande.</p>
+      <p>Vous ne payez pas en ligne. Cette page envoie uniquement votre demande à la roulotte. Le réglage se fera ensuite sur place, le jour de votre commande.</p>
+      <p>Après l’envoi, vous recevrez un récapitulatif à l’écran (et éventuellement par SMS si activé).</p>
+      <div class="modal-actions">
+        <button type="button" id="dismissPreorder" class="modal-btn">J’ai compris, continuer</button>
+      </div>
+    </div>
+  </div>
 
   <form id="orderForm">
 
@@ -472,6 +527,7 @@
       <div id="summaryList"></div>
       <div class="total">Total : <span id="totalPrice">0€</span></div>
       <button class="submit" type="submit">Envoyer la commande</button>
+      <div id="msg"></div>
     </div>
   </div>
 
@@ -557,18 +613,17 @@
 
   updateSummary();
 
-  document.getElementById("orderForm").addEventListener("submit", function(e){
-  const confirmMsg = confirm(
-    "⚠️ Ceci n'est PAS un paiement en ligne.\n\n" +
-    "Vous envoyez seulement une précommande.\n" +
-    "Le paiement se fera sur place au FoodTruck.\n\n" +
-    "Continuer ?"
-  );
-
-  if(!confirmMsg){
-    e.preventDefault();
+  const preorderModal = document.getElementById('preorderModal');
+  const dismissPreorder = document.getElementById('dismissPreorder');
+  if(preorderModal && dismissPreorder){
+    if(!localStorage.getItem('preorderConfirmed')){
+      preorderModal.style.display = 'flex';
+    }
+    dismissPreorder.addEventListener('click', () => {
+      preorderModal.style.display = 'none';
+      localStorage.setItem('preorderConfirmed', '1');
+    });
   }
-});
 </script>
 
   </body>
