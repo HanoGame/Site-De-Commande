@@ -26,7 +26,9 @@
 
   <!-- orders tab content -->
   <div id="tab-orders" class="tab-content">
-    <h2>Liste des plats par statut</h2>
+    <h2>Commandes en base</h2>
+    <div id="order-list"></div>
+    <h2 style="margin-top:24px">Liste des plats par statut</h2>
     <div class="columns">
       <div class="column" id="col-todo">
         <h3>À faire</h3>
@@ -129,6 +131,47 @@
       });
     }
 
+    function renderOrderList(orders){
+      const wrap = document.getElementById('order-list');
+      if(!orders || orders.length===0){
+        wrap.innerHTML = '<p>Aucune commande enregistrée.</p>';
+        return;
+      }
+      let html = '<table><tr><th>Date</th><th>Client</th><th>Contenu</th><th>Action</th></tr>';
+      orders.forEach(o=>{
+        const infos = o.items.map(it=>{
+          const info = DISH_INFO[it.id] || { label: it.id };
+          return `${it.qty}× ${info.label}`;
+        }).join(', ');
+        const date = new Date(o.ts).toLocaleString();
+        html += `<tr><td>${date}</td><td>${o.name}</td><td>${infos}</td><td><button class="delete-order" data-id="${o.id}">Supprimer</button></td></tr>`;
+      });
+      html += '</table>';
+      wrap.innerHTML = html;
+
+      wrap.querySelectorAll('.delete-order').forEach(btn=>{
+        btn.addEventListener('click', async ()=>{
+          const id = btn.dataset.id;
+          if(!confirm('Supprimer cette commande ?')) return;
+          try{
+            const res = await fetch(`/api/order/${id}/${SECRET}`, { method:'DELETE' });
+            const j = await res.json();
+            if(j.ok){
+              const status = loadStatus();
+              Object.keys(status).forEach(k=>{ if(k.startsWith(`${id}_`)) delete status[k]; });
+              saveStatus(status);
+              await loadTotals();
+              await loadOrders();
+            } else {
+              alert('Erreur suppression: ' + (j.error||'')); 
+            }
+          } catch(err) {
+            alert('Erreur réseau lors suppression: ' + err.message);
+          }
+        });
+      });
+    }
+
     // remove updateFinishedList function since not used
 
     async function loadTotals(){
@@ -147,9 +190,11 @@
       try{
         const res = await fetch('/api/orders/'+SECRET);
         const j = await res.json();
-        renderOrders(j.orders||[]);
+        const orders = j.orders||[];
+        renderOrderList(orders);
+        renderOrders(orders);
       }catch(err){
-        document.getElementById('orders').innerHTML = '<p>Erreur: '+err.message+'</p>';
+        document.getElementById('order-list').innerHTML = '<p>Erreur: '+err.message+'</p>';
       }
     }
 

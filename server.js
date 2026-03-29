@@ -77,6 +77,19 @@ app.get('/api/totals/' + SECRET, (req, res) => {
   res.json({ dishTotals, ingredientTotals });
 });
 
+app.delete('/api/order/:id/' + SECRET, (req, res) => {
+  const id = Number(req.params.id);
+  if (!id) return res.status(400).json({ error: 'Id de commande invalide' });
+
+  const orders = readOrders();
+  const index = orders.findIndex(o => o.id === id);
+  if (index === -1) return res.status(404).json({ error: 'Commande introuvable' });
+
+  orders.splice(index, 1);
+  writeOrders(orders);
+  res.json({ ok: true });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
